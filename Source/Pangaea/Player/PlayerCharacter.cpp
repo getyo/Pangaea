@@ -1,6 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "PangaeaCharacter.h"
+#include "PlayerCharacter.h"
 
 #include "PlayerAvatarAnimInstance.h"
 #include "UObject/ConstructorHelpers.h"
@@ -13,7 +13,7 @@
 #include "Materials/Material.h"
 #include "Engine/World.h"
 
-APangaeaCharacter::APangaeaCharacter() : _HealthPoints(HealthPoints),_AttackCountingDown(0)
+APlayerCharacter::APlayerCharacter() : _HealthPoints(HealthPoints),_AttackCountingDown(0)
 {
 	// Set size for player capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
@@ -48,7 +48,7 @@ APangaeaCharacter::APangaeaCharacter() : _HealthPoints(HealthPoints),_AttackCoun
 	PrimaryActorTick.bStartWithTickEnabled = true;
 }
 
-void APangaeaCharacter::Tick(float DeltaSeconds)
+void APlayerCharacter::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
 	if (_AttackCountingDown > 0)
@@ -58,16 +58,16 @@ void APangaeaCharacter::Tick(float DeltaSeconds)
 }
 
 // Called when the game starts or when spawned
-void APangaeaCharacter::BeginPlay()
+void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 }
 
-bool APangaeaCharacter::CanAttack() {
-	return _AttackCountingDown <= 0;
+bool APlayerCharacter::CanAttack() {
+	return _Weapon != nullptr && _AttackCountingDown <= 0;
 }
 
-void APangaeaCharacter::Attack()
+void APlayerCharacter::Attack()
 {
 	if (CanAttack())
 	{

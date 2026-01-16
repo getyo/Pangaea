@@ -7,8 +7,9 @@
 #include "EnemyCharacterAnimInstance.h"
 #include "Components/CapsuleComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Misc/MapErrors.h"
 #include "Navigation/PathFollowingComponent.h"
-#include "Pangaea/Player/PangaeaCharacter.h"
+#include "Pangaea/Player/PlayerCharacter.h"
 
 // Sets default values
 AEnemyCharacter::AEnemyCharacter():_HealthPoints(HealthPoints),_AttackCountingDown(0)
@@ -28,6 +29,17 @@ AEnemyCharacter::AEnemyCharacter():_HealthPoints(HealthPoints),_AttackCountingDo
 	PrimaryActorTick.bStartWithTickEnabled = true;
 	PawnSensingComponent = CreateDefaultSubobject<UPawnSensingComponent>("PawnSensingComponent");
 	
+	static  ConstructorHelpers::FClassFinder<AActor> ClassFinder(TEXT("/Game/TopDown/Blueprints/Actor/BP_WeaponHammer.BP_WeaponHammer_C"));
+	if (ClassFinder.Succeeded())
+	{
+		_WeaponClass = ClassFinder.Class;
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1,20.f,FColor::Red,
+			FString::Printf(TEXT("Class: %s, Cannot find /Game/TopDown/Blueprints/Actor/BP_WeaponHammer.BP_WeaponHammer_C"),
+			*GetClass()->GetName()));
+	}
 }
 
 // Called when the game starts or when spawned
@@ -38,7 +50,15 @@ void AEnemyCharacter::BeginPlay()
 	{
 		PawnSensingComponent->OnSeePawn.AddDynamic(this,&AEnemyCharacter::ChaseTarget);
 	}
-	
+	auto Weapon = Cast<AWeapon>(GetWorld()->SpawnActor(_WeaponClass));
+	if (!Weapon)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow,
+	FString::Printf(TEXT("Class %s, Cannot Spawn %s's Actor"),
+		*GetName(), *_WeaponClass->GetName()));
+	}
+	Weapon->AttachToComponent(GetMesh(),FAttachmentTransformRules::SnapToTargetIncludingScale,FName("rhand_weapon"));
+	Weapon->SetHolder(this);
 }
 
 // Called every frame
@@ -86,7 +106,7 @@ void AEnemyCharacter::Attack()
 
 void AEnemyCharacter::ChaseTarget(APawn* SeenPawn)
 {
-	auto PlayerCharacter = Cast<APangaeaCharacter>(SeenPawn);
+	auto PlayerCharacter = Cast<APlayerCharacter>(SeenPawn);
 	if (!PlayerCharacter) return;
 	auto EnemyAnimInst = Cast<UEnemyCharacterAnimInstance>(GetMesh()->GetAnimInstance());
 

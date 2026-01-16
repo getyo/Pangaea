@@ -50,6 +50,7 @@ protected:
 	int _HealthPoints;
 	float _AttackCountingDown;
 	APawn * _ChasedTarget = nullptr;
+	UClass * _WeaponClass = nullptr;
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="EnemyCharacter")
 	UPawnSensingComponent * PawnSensingComponent = nullptr;
 	

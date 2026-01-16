@@ -4,15 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "PangaeaCharacter.generated.h"
+#include "../Actors/Weapon.h"
+#include "PlayerCharacter.generated.h"
 
 UCLASS(Blueprintable)
-class APangaeaCharacter : public ACharacter
+class APlayerCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
 public:
-	APangaeaCharacter();
+	APlayerCharacter();
 
 	// Called every frame.
 	virtual void Tick(float DeltaSeconds) override;
@@ -38,7 +39,10 @@ public:
 	bool CanAttack();
 	void Attack();
 	void Hit(int damage);
-	
+	inline void SetWeapon(AWeapon * Weapon)
+	{
+		_Weapon =Weapon;
+	}
 	/** Returns TopDownCameraComponent subobject **/
 	FORCEINLINE class UCameraComponent* GetTopDownCameraComponent() const { return TopDownCameraComponent; }
 	/** Returns CameraBoom subobject **/
@@ -57,6 +61,8 @@ private:
 protected:
 	int _HealthPoints;
 	float _AttackCountingDown;
+	AWeapon * _Weapon = nullptr;
+	
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 };

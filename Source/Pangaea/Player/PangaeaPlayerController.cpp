@@ -5,7 +5,7 @@
 #include "Blueprint/AIBlueprintHelperLibrary.h"
 #include "NiagaraSystem.h"
 #include "NiagaraFunctionLibrary.h"
-#include "PangaeaCharacter.h"
+#include "PlayerCharacter.h"
 #include "Engine/World.h"
 #include "EnhancedInputComponent.h"
 #include "InputActionValue.h"
@@ -73,7 +73,7 @@ void APangaeaPlayerController::OnInputStarted()
 void APangaeaPlayerController::OnSetDestinationTriggered()
 {
 	//如果当前正在攻击，忽略移动输入
-	auto MyPangaeaCharacter= Cast<APangaeaCharacter>(GetPawn());
+	auto MyPangaeaCharacter= Cast<APlayerCharacter>(GetPawn());
 	if (MyPangaeaCharacter != nullptr )
 	{
 		auto AnimInst = Cast<UPlayerAvatarAnimInstance>(MyPangaeaCharacter->GetMesh()->GetAnimInstance());
@@ -114,7 +114,7 @@ void APangaeaPlayerController::OnSetDestinationTriggered()
 void APangaeaPlayerController::OnSetDestinationReleased()
 {
 	//如果当前正在攻击，忽略移动输入
-	auto MyPangaeaCharacter= Cast<APangaeaCharacter>(GetPawn());
+	auto MyPangaeaCharacter= Cast<APlayerCharacter>(GetPawn());
 	if (MyPangaeaCharacter != nullptr )
 	{
 		auto AnimInst = Cast<UPlayerAvatarAnimInstance>(MyPangaeaCharacter->GetMesh()->GetAnimInstance());
@@ -148,11 +148,11 @@ void APangaeaPlayerController::OnTouchReleased()
 
 void APangaeaPlayerController::OnAttackStarted() 
 {
-	auto MyPangaeaCharacter= Cast<APangaeaCharacter>(GetPawn());
+	auto MyPangaeaCharacter= Cast<APlayerCharacter>(GetPawn());
 	if (MyPangaeaCharacter != nullptr) MyPangaeaCharacter->Attack();
 }
 
-void APangaeaCharacter::DieProcess()
+void APlayerCharacter::DieProcess()
 {
 	Destroy();
 }

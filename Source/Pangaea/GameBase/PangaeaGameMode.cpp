@@ -2,7 +2,7 @@
 
 #include "PangaeaGameMode.h"
 #include "../Player/PangaeaPlayerController.h"
-#include "../Player/PangaeaCharacter.h"
+#include "../Player/PlayerCharacter.h"
 #include "UObject/ConstructorHelpers.h"
 
 APangaeaGameMode::APangaeaGameMode()

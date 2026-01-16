@@ -4,7 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Components//BoxComponent.h"
+#include "../Player/PlayerCharacter.h"
+#include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "ADefenseTower.generated.h"
 
@@ -14,43 +15,51 @@ class PANGAEA_API ADefenseTower : public AActor
 	GENERATED_BODY()
 	
 public:	
-	UPROPERTY(EditAnywhere, Category = "TowerParams")
+	UPROPERTY(EditAnywhere, Category = "DefenseTower")
 	int HealthPoints = 100;
-	UPROPERTY(EditAnywhere, Category = "TowerParams")
+	UPROPERTY(EditAnywhere, Category = "DefenseTower")
 	int ShellDefense = 2;
-	UPROPERTY(EditAnywhere, Category = "TowerParams")
+	UPROPERTY(EditAnywhere, Category = "DefenseTower")
 	float AttackRange = 15.0f;
-	UPROPERTY(EditAnywhere, Category = "TowerParams")
+	UPROPERTY(EditAnywhere, Category = "DefenseTower")
 	float ReloadInterval = 1.0f;
 
 	// Sets default values for this actor's properties
 	ADefenseTower();
-	UFUNCTION(BlueprintPure, Category = "Pangaea|DefenseTower")
+	UFUNCTION(BlueprintPure, Category = "DefenseTower")
 	int GetHealthPoints();
-	UFUNCTION(BlueprintPure, Category = "Pangaea|DefenseTower")
+	UFUNCTION(BlueprintPure, Category = "DefenseTower")
 	bool IsDestoryed();
-	UFUNCTION(BlueprintPure, Category = "Pangaea|DefenseTower")
+	UFUNCTION(BlueprintPure, Category = "DefenseTower")
 	bool CanFire();
 	void Fire();
 	void Hit(int damage);
-	FORCEINLINE UBoxComponent* GetBoxComponent()const {
-		return _BoxComponent;
-	}
-	FORCEINLINE UStaticMeshComponent* GetStaticMeshComponent() const {
-		return _StaticMeshComponent;
-	}
+	UFUNCTION()
+	void OnSphereOverlapBegin(UPrimitiveComponent * OverlappedComponent,
+		AActor * OtherActor,
+		UPrimitiveComponent * OtherComp,
+		int OtherBodyIndex,
+		bool bFromSweep,
+		const FHitResult & SweepResult);
+	UFUNCTION()
+	void OnSphereOverlapEnd(UPrimitiveComponent * OverlappedComponent,
+		AActor * OtherActor,
+		UPrimitiveComponent * OtherComp,
+		int OtherBodyIndex);
+
 
 protected:
 	int _HealthPoints;
-	float _ReloadCountingDown;
+	float _ReloadCountingDown = 0;
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	void DestoryProcess();
-private:
-	UPROPERTY(VisibleAnywhere, Category = "Tower Components")
-	UBoxComponent* _BoxComponent;
-	UPROPERTY(VisibleAnywhere, Category = "Tower Components")
-	UStaticMeshComponent* _StaticMeshComponent;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "DefenseTower")
+	USphereComponent* SphereComponent;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "DefenseTower")
+	UStaticMeshComponent* StaticMeshComponent;
+	UClass* _FireBallClass = nullptr;
+	APlayerCharacter* _TargetPlayer;
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
