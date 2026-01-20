@@ -1,8 +1,8 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "PangaeaGameMode.h"
-#include "../Player/PangaeaPlayerController.h"
-#include "../Player/PlayerCharacter.h"
+#include "Pangaea/Character/Player//PangaeaPlayerController.h"
+#include "Pangaea/Character/Player//PlayerCharacter.h"
 #include "UObject/ConstructorHelpers.h"
 
 APangaeaGameMode::APangaeaGameMode()

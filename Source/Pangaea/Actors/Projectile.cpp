@@ -3,10 +3,8 @@
 
 #include "Projectile.h"
 
-
-
 // Sets default values
-AProjectile::AProjectile()
+AProjectile::AProjectile():_LifeCountingDown(LifeSpan)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -14,6 +12,7 @@ AProjectile::AProjectile()
 	SetRootComponent(MeshComp);
 	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>("ProjectileMovementComponent");
 	ProjectileMovementComponent->SetUpdatedComponent(MeshComp);
+	OnActorBeginOverlap.AddDynamic(this, &AProjectile::OnOverlapBegin);
 }
 
 // Called when the game starts or when spawned
@@ -29,8 +28,44 @@ void AProjectile::BeginPlay()
 void AProjectile::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	LifeSpan-= DeltaTime;
-	if (LifeSpan <= 0.0f)
-		Destroy(true);
+	_LifeCountingDown-= DeltaTime;
+	if (_LifeCountingDown <= 0.0f)
+	{
+		if (_Holder) _Holder->RecycleProjectile(this);
+	}
+	
 }
+
+void AProjectile::ResetProjectile()
+{
+	SetActorHiddenInGame(true);
+	SetActorTickEnabled(false);
+}
+
+void AProjectile::StartProjectile()
+{
+	SetActorHiddenInGame(false);
+	SetActorTickEnabled(true);
+	this->_LifeCountingDown = LifeSpan;
+}
+
+void AProjectile::OnOverlapBegin(AActor* OverlappedActor, AActor* OtherActor)
+{
+	auto HitActor = Cast<IDamagableInterface> (OtherActor);
+	if (!HitActor ) return;
+	HitActor->Hurt(Damage,Camp);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 

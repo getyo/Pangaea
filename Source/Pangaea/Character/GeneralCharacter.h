@@ -4,74 +4,58 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "Perception/PawnSensingComponent.h"
-#include "EnemyCharacter.generated.h"
+#include "GeneralCharacterAnimInstance.h"
+#include "Pangaea/Interface/DamagableInterface.h"
+#include "GeneralCharacter.generated.h"
 
 UCLASS()
-class PANGAEA_API AEnemyCharacter : public ACharacter
+class PANGAEA_API AGeneralCharacter : public ACharacter,public IDamagableInterface
 {
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this character's properties
-	AEnemyCharacter();
-	
+	AGeneralCharacter();
 	UPROPERTY(EditAnywhere, Category = "EnemyCharacter")
-	int HealthPoints = 500;
+	int MaxHealthPoints = 30;
 	UPROPERTY(EditAnywhere, Category = "EnemyCharacter")
 	float Strength = 10;
 	UPROPERTY(EditAnywhere, Category = "EnemyCharacter")
-	float Armer = 3;
-	UPROPERTY(EditAnywhere, Category = "EnemyCharacter")
-	float AttackRange = 200;
-	UPROPERTY(EditAnywhere, Category = "EnemyCharacter")
 	float AttackInterval = 2;
-	UPROPERTY(EditAnywhere, Category = "EnemyCharacter")
-	float ChaseRange = 3000;
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite,Category = "EnemyCharacter")
+	E_Camp Camp;
+	
+	
 	UFUNCTION(BlueprintPure, Category = "EnemyCharacter")
 	inline int GetHealthPoints() const
 	{
-		return _HealthPoints;
+		return _CurHealthPoints;
 	}
 	UFUNCTION(BlueprintPure, Category = "EnemyCharacter")
 	inline bool IsKilled() const
 	{
-		return _HealthPoints <= 0;
+		return _CurHealthPoints <= 0;
 	}
 	UFUNCTION(BlueprintCallable, Category = "EnemyCharacter")
-	bool CanAttack();
+	virtual bool CanAttack();
 	void Attack();
-	void Hit(int damage);
+	virtual void Hurt(float Damage,E_Camp SourceCamp) override;
 	
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	int _HealthPoints;
+	int _CurHealthPoints;
 	float _AttackCountingDown;
-	APawn * _ChasedTarget = nullptr;
-	UClass * _WeaponClass = nullptr;
-	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="EnemyCharacter")
-	UPawnSensingComponent * PawnSensingComponent = nullptr;
-	
-private:	
-	//用于重置_ChaseTarget的值，因为PawnSensingComponent并不会说自己看不见了
-	FTimerHandle TargetLostTimerHandle;
-	inline  void ClearTarget()
-	{
-		_ChasedTarget = nullptr;
-	}
+	UGeneralCharacterAnimInstance* _AnimInstance;
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-	UFUNCTION()
-	void ChaseTarget(APawn* SeenPawn);
-
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	UFUNCTION(BlueprintCallable, Category = "EnemyCharacter",meta=(AllowPrivateAccess=true))
-	void DieProcess()
+	virtual void DieProcess()
 	{
 		Destroy();
 	}
+private:	
+
 
 };

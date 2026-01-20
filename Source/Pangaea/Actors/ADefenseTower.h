@@ -3,27 +3,32 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Projectile.h"
 #include "GameFramework/Actor.h"
-#include "../Player/PlayerCharacter.h"
+#include "Pangaea/Character//Player/PlayerCharacter.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Pangaea/Interface/RecycleProjectileInterface.h"
+#include "Pangaea/Interface/DamagableInterface.h"
 #include "ADefenseTower.generated.h"
 
 UCLASS()
-class PANGAEA_API ADefenseTower : public AActor
+class PANGAEA_API ADefenseTower : public AActor,public IRecycleProjectileInterface,public IDamagableInterface
 {
 	GENERATED_BODY()
 	
 public:	
 	UPROPERTY(EditAnywhere, Category = "DefenseTower")
-	int HealthPoints = 100;
+	int MaxHealthPoints = 100;
 	UPROPERTY(EditAnywhere, Category = "DefenseTower")
 	int ShellDefense = 2;
 	UPROPERTY(EditAnywhere, Category = "DefenseTower")
 	float AttackRange = 15.0f;
 	UPROPERTY(EditAnywhere, Category = "DefenseTower")
 	float ReloadInterval = 1.0f;
-
+	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "DefenseTower")
+	E_Camp Camp = E_Camp::Enemy;
+	
 	// Sets default values for this actor's properties
 	ADefenseTower();
 	UFUNCTION(BlueprintPure, Category = "DefenseTower")
@@ -49,19 +54,23 @@ public:
 
 
 protected:
-	int _HealthPoints;
-	float _ReloadCountingDown = 0;
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-	void DestoryProcess();
 	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "DefenseTower")
 	USphereComponent* SphereComponent;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "DefenseTower")
 	UStaticMeshComponent* StaticMeshComponent;
+	int _HealthPoints;
+	float _ReloadCountingDown = 0;
 	UClass* _FireBallClass = nullptr;
 	APlayerCharacter* _TargetPlayer;
-public:	
+	TQueue<AProjectile *> _ProjectPool;
+	
+	AProjectile* GetProjectile(UClass * ProjectClass,const UObject * Context);
+	virtual void BeginPlay() override;
+	virtual void RecycleProjectile(AProjectile * Projectile) override;
+	virtual void Hurt(float Damage, E_Camp SourceCamp) override;
+	void DestoryProcess();
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+public:	
 
 };

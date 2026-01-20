@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Pangaea/Character/GeneralCharacter.h"
 #include "Weapon.generated.h"
 
 UCLASS(Blueprintable,BlueprintType)
@@ -23,10 +24,13 @@ protected:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category= "Weapon")
 	float Strength;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category= "Weapon")
+	float HitSpan = 1;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category= "Weapon")
 	UStaticMeshComponent * StaticMesh = nullptr;
-	ACharacter * _Holder = nullptr;
+	AGeneralCharacter * _Holder = nullptr;
+	float _HitCountDown;
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-	inline void SetHolder(ACharacter * Holder) { this->_Holder = Holder; }
+	inline void SetHolder(AGeneralCharacter* Holder) { this->_Holder = Holder; }
 };

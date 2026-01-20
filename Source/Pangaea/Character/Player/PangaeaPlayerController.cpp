@@ -10,7 +10,7 @@
 #include "EnhancedInputComponent.h"
 #include "InputActionValue.h"
 #include "EnhancedInputSubsystems.h"
-#include "PlayerAvatarAnimInstance.h"
+#include "Pangaea/Character/GeneralCharacterAnimInstance.h"
 #include "Engine/LocalPlayer.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -76,7 +76,7 @@ void APangaeaPlayerController::OnSetDestinationTriggered()
 	auto MyPangaeaCharacter= Cast<APlayerCharacter>(GetPawn());
 	if (MyPangaeaCharacter != nullptr )
 	{
-		auto AnimInst = Cast<UPlayerAvatarAnimInstance>(MyPangaeaCharacter->GetMesh()->GetAnimInstance());
+		auto AnimInst = Cast<UGeneralCharacterAnimInstance>(MyPangaeaCharacter->GetMesh()->GetAnimInstance());
 		if (AnimInst && AnimInst->GetIsAttacking())
 			return;
 	} 
@@ -117,7 +117,7 @@ void APangaeaPlayerController::OnSetDestinationReleased()
 	auto MyPangaeaCharacter= Cast<APlayerCharacter>(GetPawn());
 	if (MyPangaeaCharacter != nullptr )
 	{
-		auto AnimInst = Cast<UPlayerAvatarAnimInstance>(MyPangaeaCharacter->GetMesh()->GetAnimInstance());
+		auto AnimInst = Cast<UGeneralCharacterAnimInstance>(MyPangaeaCharacter->GetMesh()->GetAnimInstance());
 		if (AnimInst && AnimInst->GetIsAttacking())
 			return;
 	} 
@@ -150,9 +150,4 @@ void APangaeaPlayerController::OnAttackStarted()
 {
 	auto MyPangaeaCharacter= Cast<APlayerCharacter>(GetPawn());
 	if (MyPangaeaCharacter != nullptr) MyPangaeaCharacter->Attack();
-}
-
-void APlayerCharacter::DieProcess()
-{
-	Destroy();
 }

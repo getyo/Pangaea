@@ -38,6 +38,7 @@ void ADefenseTower::BeginPlay()
 {
 	Super::BeginPlay();
 	SetActorTickInterval(0.5f);
+	_HealthPoints = MaxHealthPoints;
 }
 
 int ADefenseTower::GetHealthPoints() {
@@ -67,7 +68,7 @@ void ADefenseTower::Tick(float DeltaTime)
 
 void ADefenseTower::Fire()
 {
-	AProjectile * Projectile = Cast<AProjectile>(GetWorld()->SpawnActor(_FireBallClass));
+	AProjectile * Projectile = GetProjectile(_FireBallClass,this);
 	if (!Projectile)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow,
@@ -97,4 +98,33 @@ void ADefenseTower::OnSphereOverlapEnd(UPrimitiveComponent* OverlappedComponent,
 	auto Player = Cast<APlayerCharacter>(OtherActor);
 	if (!Player || !_TargetPlayer)	return;
 	_TargetPlayer = nullptr;
+}
+
+AProjectile* ADefenseTower::GetProjectile(UClass* ProjectClass, const UObject* Context)
+{
+	if (ProjectClass == nullptr) return nullptr;
+	AProjectile * Projectile = nullptr;
+	if (!_ProjectPool.Dequeue(Projectile))
+	{
+		Projectile = Cast<AProjectile>(Context->GetWorld()->SpawnActor(ProjectClass));
+		Projectile->_Holder = this;
+		Projectile->Camp = Camp;
+	}
+	Projectile->StartProjectile();
+	return Projectile;
+}
+
+void ADefenseTower::RecycleProjectile(AProjectile* Projectile)
+{
+	if (Projectile == nullptr) return;
+	_ProjectPool.Enqueue(Projectile);
+	Projectile->ResetProjectile();
+}
+
+void ADefenseTower::Hurt(float Damage, E_Camp SourceCamp)
+{
+	if (SourceCamp == Camp) return;
+	_HealthPoints -= Damage;
+	if (_HealthPoints <= 0) 
+		Destroy();
 }

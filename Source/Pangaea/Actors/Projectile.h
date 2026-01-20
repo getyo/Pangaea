@@ -5,10 +5,12 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "Pangaea/Interface/DamagableInterface.h"
+#include "Pangaea/Interface/RecycleProjectileInterface.h"
 #include "Projectile.generated.h"
 
 UCLASS()
-class PANGAEA_API AProjectile : public AActor
+class PANGAEA_API AProjectile : public AActor 
 {
 	GENERATED_BODY()
 	
@@ -28,12 +30,17 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,Category = "Projectile")
 	UProjectileMovementComponent* ProjectileMovementComponent = nullptr;
 	float _LifeCountingDown;
+	
+	UFUNCTION()
+	void OnOverlapBegin(AActor* OverlappedActor,AActor* OtherActor);
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
-public:	
-	inline UProjectileMovementComponent* GetProjectileMovementComponent() const { return ProjectileMovementComponent; }
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
+public:	
+	E_Camp Camp;
+	IRecycleProjectileInterface *_Holder = nullptr;
+	void StartProjectile();
+	void ResetProjectile();
+	inline UProjectileMovementComponent* GetProjectileMovementComponent() const { return ProjectileMovementComponent; }
 };
