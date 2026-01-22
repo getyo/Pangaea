@@ -7,6 +7,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Navigation/PathFollowingComponent.h"
+#include "Net/UnrealNetwork.h"
 #include "Pangaea/Character/Player/PlayerCharacter.h"
 
 // Sets default values
@@ -50,15 +51,20 @@ void AEnemyCharacter::BeginPlay()
 	{
 		PawnSensingComponent->OnSeePawn.AddDynamic(this,&AEnemyCharacter::ChaseTarget);
 	}
-	 _Weapon = Cast<AWeapon>(GetWorld()->SpawnActor(_WeaponClass));
-	if (!_Weapon)
+	if (HasAuthority())
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow,
-	FString::Printf(TEXT("Class %s, Cannot Spawn %s's Actor"),
-		*GetName(), *_WeaponClass->GetName()));
+		_Weapon = Cast<AWeapon>(GetWorld()->SpawnActor(_WeaponClass));
+		if (!_Weapon)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow,
+				FString::Printf(TEXT("Class %s, Cannot Spawn %s's Actor"),
+				*GetName(), *_WeaponClass->GetName()));
+		}
+		_Weapon->SetOwner(this);
+		_Weapon->AttachToComponent(GetMesh(),FAttachmentTransformRules::SnapToTargetIncludingScale,FName("rhand_weapon"));
+		_Weapon->SetHolder(this);
 	}
-	_Weapon->AttachToComponent(GetMesh(),FAttachmentTransformRules::SnapToTargetIncludingScale,FName("rhand_weapon"));
-	_Weapon->SetHolder(this);
+
 }
 
 
@@ -81,6 +87,12 @@ void AEnemyCharacter::Tick(float DeltaTime)
 void AEnemyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+}
+
+void AEnemyCharacter::OnRep_Weapon()
+{
+	if (_Weapon)
+		_Weapon->SetHolder(this);
 }
 
 void AEnemyCharacter::ChaseTarget(APawn* SeenPawn)
@@ -118,13 +130,21 @@ bool AEnemyCharacter::CanAttack()
 	return Super::CanAttack() && _Weapon != nullptr;
 }
 
-void AEnemyCharacter::Destroyed()
+void AEnemyCharacter::DieProcess()
 {
-	Super::Destroyed();
-	_Weapon->SetHolder(nullptr);
-	_Weapon->Destroy();
+	if (_Weapon)
+	{
+		_Weapon->SetHolder(nullptr);
+		_Weapon->Destroy();
+	}
+	Super::Destroy();
 }
 
+void AEnemyCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AEnemyCharacter,_Weapon);
+}
 
 
 

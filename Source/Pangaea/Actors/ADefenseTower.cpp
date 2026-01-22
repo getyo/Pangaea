@@ -5,6 +5,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Projectile.h"
 #include "Components/SphereComponent.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values
 ADefenseTower::ADefenseTower()
@@ -22,7 +23,7 @@ ADefenseTower::ADefenseTower()
 	StaticMeshComponent->SetupAttachment(SphereComponent);
 	
 	static ConstructorHelpers::FClassFinder<AActor> FireBallClassFinder(TEXT("/Game/TopDown/Blueprints/Actor/BP_FireBall.BP_FireBall_C"));
-	
+	bReplicates = true;
 	if (FireBallClassFinder.Succeeded())
 	{
 		_FireBallClass = FireBallClassFinder.Class;
@@ -66,14 +67,27 @@ void ADefenseTower::Tick(float DeltaTime)
 	}
 }
 
-void ADefenseTower::Fire()
+void ADefenseTower::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(ADefenseTower, _HealthPoints);
+}
+
+void ADefenseTower::OnRep_HealthPoints()
+{
+	if (_HealthPoints <= 0) 
+		DestroyProcess();
+}
+
+void ADefenseTower::FireBallSpawn_BroadCast_RPC_Implementation()
 {
 	AProjectile * Projectile = GetProjectile(_FireBallClass,this);
 	if (!Projectile)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow,
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red,
 			FString::Printf(TEXT("Class %s, Cannot Spawn %s's Actor"),
 				*GetName(), *_FireBallClass->GetName()));
+		return;
 	}
 	
 	auto StartLocation = this->GetActorLocation();
@@ -84,6 +98,15 @@ void ADefenseTower::Fire()
 	
 	Projectile->GetProjectileMovementComponent()->Velocity = LookAtRotation.Vector() * Projectile->GetProjectileMovementComponent()->InitialSpeed;
 	Projectile->GetProjectileMovementComponent()->UpdateComponentVelocity();
+	//本地关闭碰撞
+	if (!HasAuthority())
+		Projectile->SetActorEnableCollision(false);
+}
+
+void ADefenseTower::Fire()
+{
+	if (!HasAuthority()) return;
+	FireBallSpawn_BroadCast_RPC();
 }
 
 void ADefenseTower::OnSphereOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -106,9 +129,10 @@ AProjectile* ADefenseTower::GetProjectile(UClass* ProjectClass, const UObject* C
 	AProjectile * Projectile = nullptr;
 	if (!_ProjectPool.Dequeue(Projectile))
 	{
-		Projectile = Cast<AProjectile>(Context->GetWorld()->SpawnActor(ProjectClass));
-		Projectile->_Holder = this;
-		Projectile->Camp = Camp;
+	
+			Projectile = Cast<AProjectile>(Context->GetWorld()->SpawnActor(ProjectClass));
+			Projectile->_Holder = this;
+			Projectile->Camp = Camp;
 	}
 	Projectile->StartProjectile();
 	return Projectile;
@@ -124,7 +148,30 @@ void ADefenseTower::RecycleProjectile(AProjectile* Projectile)
 void ADefenseTower::Hurt(float Damage, E_Camp SourceCamp)
 {
 	if (SourceCamp == Camp) return;
-	_HealthPoints -= Damage;
-	if (_HealthPoints <= 0) 
-		Destroy();
+	if (HasAuthority())
+	{
+		_HealthPoints -= Damage;
+		FTimerHandle TimerHandle;
+		if (_HealthPoints <= 0)
+		{
+			GetWorldTimerManager().SetTimer(TimerHandle, [this]()
+			{			
+				// 在执行逻辑前，先检查自己是否还活着
+				if (this && IsValid(this)) 
+				{
+					this->DestroyProcess();
+				}
+			}, 0.2f, false);
+		}
+	}
+}
+
+void ADefenseTower::DestroyProcess()
+{
+	AProjectile * Projectile = nullptr;
+	while (_ProjectPool.Dequeue(Projectile))
+	{
+		Projectile->Destroy();
+	}
+	Super::Destroy();
 }

@@ -2,7 +2,9 @@
 
 
 #include "Weapon.h"
-#include "Pangaea/Interface/DamagableInterface.h"
+
+#include "Net/UnrealNetwork.h"
+#include "Pangaea/Interface/DamageableInterface.h"
 #include "Pangaea/Character/Player//PlayerCharacter.h"
 
 // Sets default values
@@ -17,12 +19,21 @@ AWeapon::AWeapon() : _HitCountDown(0)
 	StaticMesh->SetCollisionProfileName(TEXT("OverlapOnlyPawn"));
 	
 	OnActorBeginOverlap.AddDynamic(this,&AWeapon::OnWeaponOverlapBegin);
+	bAlwaysRelevant = true;
+	bReplicates = true;
+	SetReplicateMovement(true);
 }
 
 // Called when the game starts or when spawned
 void AWeapon::BeginPlay()
 {
 	Super::BeginPlay();
+}
+
+void AWeapon::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AWeapon,_Holder);
 }
 
 // Called every frame
@@ -45,16 +56,38 @@ void AWeapon::OnWeaponOverlapBegin(AActor* OverlappedActor, AActor* OtherActor)
 	{
 		//打到人，且打到的不是自己
 		if (OtherActor == _Holder) return;
-		auto HitActor = Cast<IDamagableInterface>(OtherActor);
+		auto HitActor = Cast<IDamageableInterface>(OtherActor);
 		if (!HitActor) return;
 		
 		//当前正在攻击状态
 		auto HolderAnim = Cast<UGeneralCharacterAnimInstance>(_Holder->GetMesh()->GetAnimInstance());
 		if (!HolderAnim) return;
 		if (!HolderAnim->GetIsAttacking() || _HitCountDown > 0) return;
-
-		HitActor->Hurt(Strength+_Holder->Strength,_Holder->Camp);
 		_HitCountDown = HitSpan;
+
+		if (HasAuthority())
+		{
+			HitActor->Hurt(Strength+_Holder->Strength,_Holder->Camp);
+		}else 
+		{
+			if (RPCSender)
+				RPCSender->RequestDamageToServer(Strength+_Holder->Strength,_Holder->Camp,OtherActor);
+			else
+			{
+				auto PC = GetWorld()->GetFirstPlayerController();
+				if (PC)
+				{
+					RPCSender = Cast<AGeneralCharacter>(PC->GetPawn());
+				}
+				if (!RPCSender)
+				{
+					GEngine->AddOnScreenDebugMessage(-1,20.f,FColor::Red,TEXT("Hit Damage To Server Filed:"
+					"RPCSender is nullptr"));
+					return;
+				}
+				RPCSender->RequestDamageToServer(Strength+_Holder->Strength,_Holder->Camp,OtherActor);
+			}
+		}
 		return;
 	}
 		

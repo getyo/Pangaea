@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
-#include "DamagableInterface.generated.h"
+#include "DamageableInterface.generated.h"
 
 UENUM(BlueprintType)
 enum class E_Camp : uint8
@@ -13,13 +13,13 @@ enum class E_Camp : uint8
 };
 
 UINTERFACE(MinimalAPI, Blueprintable)
-class UDamagableInterface: public UInterface
+class UDamageableInterface: public UInterface
 {
 	GENERATED_BODY()
 };
 
 
-class PANGAEA_API IDamagableInterface
+class PANGAEA_API IDamageableInterface
 {
 	GENERATED_BODY()
 

@@ -63,9 +63,12 @@ bool APlayerCharacter::CanAttack()
 	return Super::CanAttack() && _Weapon != nullptr;
 }
 
-void APlayerCharacter::Destroyed()
+void APlayerCharacter::DieProcess()
 {
-	Super::Destroyed();
-	_Weapon->SetHolder(nullptr);
-	_Weapon->Destroy();
+	if (_Weapon)
+	{
+		_Weapon->SetHolder(nullptr);
+		_Weapon->Destroy();
+	}
+	Super::Destroy();
 }

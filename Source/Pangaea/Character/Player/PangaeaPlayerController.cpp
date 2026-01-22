@@ -149,5 +149,6 @@ void APangaeaPlayerController::OnTouchReleased()
 void APangaeaPlayerController::OnAttackStarted() 
 {
 	auto MyPangaeaCharacter= Cast<APlayerCharacter>(GetPawn());
-	if (MyPangaeaCharacter != nullptr) MyPangaeaCharacter->Attack();
+	if (MyPangaeaCharacter != nullptr) 
+		MyPangaeaCharacter->AttackC_RPC();
 }

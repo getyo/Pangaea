@@ -13,6 +13,10 @@ AProjectile::AProjectile():_LifeCountingDown(LifeSpan)
 	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>("ProjectileMovementComponent");
 	ProjectileMovementComponent->SetUpdatedComponent(MeshComp);
 	OnActorBeginOverlap.AddDynamic(this, &AProjectile::OnOverlapBegin);
+	//不要同步发射物，因为逻辑表现分离，发射物在本地生成
+	//服务器端进行碰撞检测和伤害，本地关闭碰撞
+	//受击和玩家反应应该是服务器方面回传后才播放，和本地无关
+	bReplicates = false;
 }
 
 // Called when the game starts or when spawned
@@ -51,7 +55,7 @@ void AProjectile::StartProjectile()
 
 void AProjectile::OnOverlapBegin(AActor* OverlappedActor, AActor* OtherActor)
 {
-	auto HitActor = Cast<IDamagableInterface> (OtherActor);
+	auto HitActor = Cast<IDamageableInterface> (OtherActor);
 	if (!HitActor ) return;
 	HitActor->Hurt(Damage,Camp);
 }

@@ -24,11 +24,15 @@ protected:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category= "Weapon")
 	float Strength;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category= "Weapon")
-	float HitSpan = 1;
+	float HitSpan = 1.5;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category= "Weapon")
 	UStaticMeshComponent * StaticMesh = nullptr;
+	UPROPERTY(Replicated)
 	AGeneralCharacter * _Holder = nullptr;
+	AGeneralCharacter * RPCSender = nullptr;
 	float _HitCountDown;
+	
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

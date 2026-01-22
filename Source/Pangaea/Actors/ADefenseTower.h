@@ -9,11 +9,11 @@
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Pangaea/Interface/RecycleProjectileInterface.h"
-#include "Pangaea/Interface/DamagableInterface.h"
+#include "Pangaea/Interface/DamageableInterface.h"
 #include "ADefenseTower.generated.h"
 
 UCLASS()
-class PANGAEA_API ADefenseTower : public AActor,public IRecycleProjectileInterface,public IDamagableInterface
+class PANGAEA_API ADefenseTower : public AActor,public IRecycleProjectileInterface,public IDamageableInterface
 {
 	GENERATED_BODY()
 	
@@ -25,7 +25,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = "DefenseTower")
 	float AttackRange = 15.0f;
 	UPROPERTY(EditAnywhere, Category = "DefenseTower")
-	float ReloadInterval = 1.0f;
+	float ReloadInterval = 2.0f;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "DefenseTower")
 	E_Camp Camp = E_Camp::Enemy;
 	
@@ -58,6 +58,7 @@ protected:
 	USphereComponent* SphereComponent;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "DefenseTower")
 	UStaticMeshComponent* StaticMeshComponent;
+	UPROPERTY(ReplicatedUsing=OnRep_HealthPoints)
 	int _HealthPoints;
 	float _ReloadCountingDown = 0;
 	UClass* _FireBallClass = nullptr;
@@ -68,9 +69,14 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void RecycleProjectile(AProjectile * Projectile) override;
 	virtual void Hurt(float Damage, E_Camp SourceCamp) override;
-	void DestoryProcess();
+	void DestroyProcess();
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+	UFUNCTION()
+	void OnRep_HealthPoints();
+	UFUNCTION(Client,Reliable,NetMulticast)
+	void FireBallSpawn_BroadCast_RPC();
 public:	
 
 };

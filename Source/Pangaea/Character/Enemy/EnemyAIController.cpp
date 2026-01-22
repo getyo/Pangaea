@@ -11,6 +11,6 @@ void AEnemyAIController::MakeAttackDecsion(APawn* Target)
 	if (EnemyCharacter && EnemyCharacter->GetDistanceTo(Target) <= EnemyCharacter->AttackRange)
 	{
 		if (EnemyCharacter->CanAttack())
-			EnemyCharacter->Attack();
+			EnemyCharacter->AttackC_RPC();
 	}
 }

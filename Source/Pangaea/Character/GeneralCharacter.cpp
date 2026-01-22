@@ -3,9 +3,14 @@
 
 #include "GeneralCharacter.h"
 
+#include "Enemy/EnemyCharacter.h"
+#include "Net/UnrealNetwork.h"
+#include "UniversalObjectLocators/AnimInstanceLocatorFragment.h"
+
 // Sets default values
-AGeneralCharacter::AGeneralCharacter():_CurHealthPoints(MaxHealthPoints),_AttackCountingDown(0)
+AGeneralCharacter::AGeneralCharacter():_CurHealthPoints(MaxHealthPoints),_AttackCountingDown(0),_HitCountingDown(0)
 {
+	bReplicates = true;
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -19,15 +24,23 @@ void AGeneralCharacter::BeginPlay()
 	_CurHealthPoints = MaxHealthPoints;
 }
 
-// Called every frame
-void AGeneralCharacter::Tick(float DeltaTime)
+void AGeneralCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AGeneralCharacter,_CurHealthPoints);
+}
+
+// Called every frame
+void AGeneralCharacter::Tick(float DeltaTime){
 	Super::Tick(DeltaTime);
 	if (_AttackCountingDown >= 0)
 	{
 		_AttackCountingDown -= DeltaTime;
 	}
-
+	if (_HitCountingDown >= 0)
+	{
+		_HitCountingDown -= DeltaTime;
+	}
 }
 
 // Called to bind functionality to input
@@ -37,9 +50,17 @@ void AGeneralCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 }
 
+
+
 bool AGeneralCharacter::CanAttack() {
 	return _AttackCountingDown <= 0;
 }
+
+bool AGeneralCharacter::CanHit()
+{
+	return _HitCountingDown <= 0;
+}
+
 
 void AGeneralCharacter::Attack()
 {
@@ -48,16 +69,63 @@ void AGeneralCharacter::Attack()
 		_AttackCountingDown = AttackInterval;
 
 		if (_AnimInstance)
+		{
 			_AnimInstance->SetIsAttacking(true);
+		}
 	}
+}
+
+void AGeneralCharacter::AttackC_RPC_Implementation()
+{
+	AttackS_BroadCast_RPC();
+}
+
+void AGeneralCharacter::AttackS_BroadCast_RPC_Implementation()
+{
+	Attack();	
 }
 
 void AGeneralCharacter::Hurt(float Damage,E_Camp SourceCamp)
 {
 	if (SourceCamp == Camp) return;
+	if (!HasAuthority()) return;
+	if (this->IsA<AEnemyCharacter>())
+	{
+		GEngine->AddOnScreenDebugMessage(-1,20.f,FColor::Green,
+			FString::Printf(TEXT("Hurt Damage : %f,Health :%d"),Damage,_CurHealthPoints));
+	}
 	_CurHealthPoints -= Damage;
-	if (_CurHealthPoints <= 0)
-		_AnimInstance->SetDead(true);
-	else if (!_AnimInstance->GetHit())
-		_AnimInstance->SetHit(true);
+	//服务器方面不会触发这个事件，需要手动调用
+	OnRep_CurHealthPoints();
 }
+
+void AGeneralCharacter::OnRep_CurHealthPoints()
+{
+	if (!_AnimInstance) return;
+	if (_CurHealthPoints <= 0)
+	{
+		_AnimInstance->SetDead(true);
+	}
+	else if (!_AnimInstance->GetHit() && CanHit())
+	{
+		_AnimInstance->SetHit(true);
+		_HitCountingDown = _HitInterval;
+	}
+}
+
+void AGeneralCharacter::RequestDamageToServer_Implementation(float Damage, E_Camp SourceCamp, AActor* Target)
+{
+	auto HitActor = Cast<IDamageableInterface>(Target);
+	if (HitActor)
+		HitActor->Hurt(Damage,SourceCamp);
+}
+
+
+
+
+
+
+
+
+
+

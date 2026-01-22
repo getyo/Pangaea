@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "GameFramework/ProjectileMovementComponent.h"
-#include "Pangaea/Interface/DamagableInterface.h"
+#include "Pangaea/Interface/DamageableInterface.h"
 #include "Pangaea/Interface/RecycleProjectileInterface.h"
 #include "Projectile.generated.h"
 
@@ -24,7 +24,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,Category = "Projectile")
 	float Speed = 500.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,Category = "Projectile")
-	float LifeSpan = 3.0f;
+	float LifeSpan = 3.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,Category = "Projectile")
 	UStaticMeshComponent* MeshComp = nullptr;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,Category = "Projectile")

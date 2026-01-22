@@ -25,7 +25,6 @@ CharacterStatus UGeneralCharacterAnimInstance::OnStatusAnimEnd()
 			{
 				isAttacking = false;
 			}
-				
 			else if (hit)
 			{
 				hit = false;
@@ -51,11 +50,19 @@ CharacterStatus UGeneralCharacterAnimInstance::OnStatusAnimEnd()
 				FString::Printf(TEXT("动画实例状态已改为 Locomotion, 时间: %f"), GetWorld()->GetTimeSeconds()));*/
 			break;
 		}
+	case CharacterStatus::Die:
+		{
+			if (dead)
+			{
+				Status = CharacterStatus::Die;
+			}
+			break;
+		}
 	default:break;
 	}
-	const UEnum * EnumClass = StaticEnum<CharacterStatus>();
+	/*const UEnum * EnumClass = StaticEnum<CharacterStatus>();
 	GEngine->AddOnScreenDebugMessage(-1,20.f,FColor::Green,
 		FString::Printf(TEXT("Character Class : %s,Currnet Status%s"),
-			*TryGetPawnOwner()->GetClass()->GetName(), *EnumClass->GetNameByValue(static_cast<int>(Status)).ToString()));
+			*TryGetPawnOwner()->GetClass()->GetName(), *EnumClass->GetNameByValue(static_cast<int>(Status)).ToString()));*/
 	return Status;
 }
