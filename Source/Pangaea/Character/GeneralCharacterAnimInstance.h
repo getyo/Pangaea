@@ -21,6 +21,7 @@ class PANGAEA_API UGeneralCharacterAnimInstance : public UAnimInstance
 {
 	GENERATED_BODY()
 private:
+	UE::FRecursiveMutex StatusModifyLock;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,Category="CharacterAnim", meta=(AllowPrivateAccess=true))
 	float speed = 0;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,Category="CharacterAnim", meta=(AllowPrivateAccess=true))
@@ -36,6 +37,7 @@ public:
 	CharacterStatus OnStatusAnimEnd();
 	inline void SetIsAttacking(bool value) 
 	{
+		StatusModifyLock.Lock();
 		isAttacking = value;
 		OnStatusAnimEnd();
 	}
@@ -45,6 +47,7 @@ public:
 	}
 	inline void SetHit(bool val)
 	{
+		StatusModifyLock.Lock();
 		hit = val;
 		OnStatusAnimEnd();
 	}
@@ -54,6 +57,7 @@ public:
 	}
 	inline void SetDead(bool value)
 	{
+		StatusModifyLock.Lock();
 		dead = value;
 		OnStatusAnimEnd();
 	}

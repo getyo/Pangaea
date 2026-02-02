@@ -2,10 +2,9 @@
 
 
 #include "GeneralCharacter.h"
-
+#include "Pangaea/Actors/Weapon.h"
 #include "Enemy/EnemyCharacter.h"
 #include "Net/UnrealNetwork.h"
-#include "UniversalObjectLocators/AnimInstanceLocatorFragment.h"
 
 // Sets default values
 AGeneralCharacter::AGeneralCharacter():_CurHealthPoints(MaxHealthPoints),_AttackCountingDown(0),_HitCountingDown(0)
@@ -28,6 +27,7 @@ void AGeneralCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimePropert
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AGeneralCharacter,_CurHealthPoints);
+	DOREPLIFETIME(AGeneralCharacter,_Weapon);
 }
 
 // Called every frame
@@ -92,14 +92,24 @@ void AGeneralCharacter::Hurt(float Damage,E_Camp SourceCamp)
 	if (this->IsA<AEnemyCharacter>())
 	{
 		GEngine->AddOnScreenDebugMessage(-1,20.f,FColor::Green,
-			FString::Printf(TEXT("Hurt Damage : %f,Health :%d"),Damage,_CurHealthPoints));
+			FString::Printf(TEXT("Hurt Damage : %f,Health :%f"),Damage,_CurHealthPoints));
 	}
 	_CurHealthPoints -= Damage;
 	//服务器方面不会触发这个事件，需要手动调用
-	OnRep_CurHealthPoints();
+	OnRepCurHealthPoints();
 }
 
-void AGeneralCharacter::OnRep_CurHealthPoints()
+void AGeneralCharacter::DieProcess_Implementation()
+{
+	if (_Weapon)
+	{
+		_Weapon->Destroy();
+		_Weapon = nullptr;
+	}
+	Destroy();
+}
+
+void AGeneralCharacter::OnRepCurHealthPoints_Implementation()
 {
 	if (!_AnimInstance) return;
 	if (_CurHealthPoints <= 0)
@@ -111,6 +121,12 @@ void AGeneralCharacter::OnRep_CurHealthPoints()
 		_AnimInstance->SetHit(true);
 		_HitCountingDown = _HitInterval;
 	}
+}
+
+void AGeneralCharacter::OnRep_Weapon()
+{
+	if (_Weapon)
+		_Weapon->SetHolder(this);
 }
 
 void AGeneralCharacter::RequestDamageToServer_Implementation(float Damage, E_Camp SourceCamp, AActor* Target)

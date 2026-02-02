@@ -9,6 +9,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Materials/Material.h"
 #include "Engine/World.h"
+#include "Pangaea/Actors/Weapon.h"
 
 APlayerCharacter::APlayerCharacter()
 {
@@ -61,14 +62,4 @@ void APlayerCharacter::BeginPlay()
 bool APlayerCharacter::CanAttack()
 {
 	return Super::CanAttack() && _Weapon != nullptr;
-}
-
-void APlayerCharacter::DieProcess()
-{
-	if (_Weapon)
-	{
-		_Weapon->SetHolder(nullptr);
-		_Weapon->Destroy();
-	}
-	Super::Destroy();
 }

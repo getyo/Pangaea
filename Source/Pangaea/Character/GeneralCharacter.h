@@ -7,6 +7,7 @@
 #include "GeneralCharacterAnimInstance.h"
 #include "Pangaea/Interface/DamageableInterface.h"
 #include "GeneralCharacter.generated.h"
+class AWeapon;
 
 UCLASS()
 class PANGAEA_API AGeneralCharacter : public ACharacter,public IDamageableInterface
@@ -15,11 +16,11 @@ class PANGAEA_API AGeneralCharacter : public ACharacter,public IDamageableInterf
 
 public:
 	AGeneralCharacter();
-	UPROPERTY(EditAnywhere, Category = "Character")
-	int MaxHealthPoints = 30;
-	UPROPERTY(EditAnywhere, Category = "Character")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
+	float MaxHealthPoints = 30;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
 	float Strength = 10;
-	UPROPERTY(EditAnywhere, Category = "Character")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
 	float AttackInterval = 2;
 	float _HitInterval = 0.8;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,Category = "Character")
@@ -27,7 +28,7 @@ public:
 	
 	
 	UFUNCTION(BlueprintPure, Category = "Character")
-	inline int GetHealthPoints() const
+	inline float GetHealthPoints() const
 	{
 		return _CurHealthPoints;
 	}
@@ -35,6 +36,10 @@ public:
 	inline bool IsKilled() const
 	{
 		return _CurHealthPoints <= 0;
+	}
+	inline void SetWeapon(AWeapon * Weapon)
+	{
+		_Weapon = Weapon;
 	}
 	UFUNCTION(BlueprintCallable, Category = "Character")
 	virtual bool CanAttack();
@@ -47,19 +52,19 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Character")
 	void Attack();
 	virtual void Hurt(float Damage,E_Camp SourceCamp) override;
-	UFUNCTION(BlueprintCallable, Category = "Character")
-	virtual void DieProcess()
-	{
-		Destroy();
-	}
+	UFUNCTION(BlueprintCallable,BlueprintNativeEvent, Category = "Character")
+	void DieProcess();
+	virtual void DieProcess_Implementation();
 	UFUNCTION(Server, Reliable, Category = "Character")
 	void RequestDamageToServer(float Damage, E_Camp SourceCamp, AActor* Target);
 	
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	UPROPERTY(Replicated,ReplicatedUsing=OnRep_CurHealthPoints)
-	int _CurHealthPoints;
+	UPROPERTY(Replicated,ReplicatedUsing=OnRepCurHealthPoints)
+	float _CurHealthPoints;
+	UPROPERTY(ReplicatedUsing=OnRep_Weapon)
+	AWeapon * _Weapon = nullptr;
 	float _AttackCountingDown;
 	float _HitCountingDown;
 	UGeneralCharacterAnimInstance* _AnimInstance;
@@ -68,8 +73,10 @@ protected:
 	virtual void Tick(float DeltaTime) override;
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	UFUNCTION(BlueprintCallable, Category = "Character")
-	virtual void OnRep_CurHealthPoints();
-private:	
+	UFUNCTION(BlueprintCallable,BlueprintNativeEvent, Category = "Character")
+	void OnRepCurHealthPoints();
+	virtual void OnRepCurHealthPoints_Implementation();
+	UFUNCTION()
+	void OnRep_Weapon();
 
 };

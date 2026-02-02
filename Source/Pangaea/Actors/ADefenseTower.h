@@ -69,6 +69,7 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void RecycleProjectile(AProjectile * Projectile) override;
 	virtual void Hurt(float Damage, E_Camp SourceCamp) override;
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent,Category = "DefenseTower")
 	void DestroyProcess();
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

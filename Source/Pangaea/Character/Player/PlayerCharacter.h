@@ -3,8 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Character.h"
-#include "Pangaea//Actors/Weapon.h"
 #include "Pangaea/Character/GeneralCharacter.h"
 #include "PlayerCharacter.generated.h"
 
@@ -19,10 +17,6 @@ public:
 	// Called every frame.
 	virtual void Tick(float DeltaSeconds) override;
 	
-	inline void SetWeapon(AWeapon * Weapon)
-	{
-		_Weapon =Weapon;
-	}
 	/** Returns TopDownCameraComponent subobject **/
 	FORCEINLINE class UCameraComponent* GetTopDownCameraComponent() const { return TopDownCameraComponent; }
 	/** Returns CameraBoom subobject **/
@@ -32,16 +26,12 @@ protected:
 	/** Top down camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* TopDownCameraComponent;
-
 	/** Camera boom positioning the camera above the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class USpringArmComponent* CameraBoom;
 	
-	AWeapon * _Weapon = nullptr;
-	
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	virtual void DieProcess() override;
 private:
 	
 };

@@ -166,7 +166,7 @@ void ADefenseTower::Hurt(float Damage, E_Camp SourceCamp)
 	}
 }
 
-void ADefenseTower::DestroyProcess()
+void ADefenseTower::DestroyProcess_Implementation()
 {
 	AProjectile * Projectile = nullptr;
 	while (_ProjectPool.Dequeue(Projectile))
@@ -175,3 +175,4 @@ void ADefenseTower::DestroyProcess()
 	}
 	Super::Destroy();
 }
+

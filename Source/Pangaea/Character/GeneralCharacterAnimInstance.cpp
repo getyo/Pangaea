@@ -5,6 +5,7 @@
 
 CharacterStatus UGeneralCharacterAnimInstance::OnStatusAnimEnd()
 {
+	StatusModifyLock.Lock();
 	switch (Status)
 	{
 	case CharacterStatus::Locomotion:
@@ -60,8 +61,8 @@ CharacterStatus UGeneralCharacterAnimInstance::OnStatusAnimEnd()
 		}
 	default:break;
 	}
-	/*const UEnum * EnumClass = StaticEnum<CharacterStatus>();
-	GEngine->AddOnScreenDebugMessage(-1,20.f,FColor::Green,
+	const UEnum * EnumClass = StaticEnum<CharacterStatus>();
+	/*GEngine->AddOnScreenDebugMessage(-1,20.f,FColor::Green,
 		FString::Printf(TEXT("Character Class : %s,Currnet Status%s"),
 			*TryGetPawnOwner()->GetClass()->GetName(), *EnumClass->GetNameByValue(static_cast<int>(Status)).ToString()));*/
 	return Status;

@@ -2,12 +2,11 @@
 
 
 #include "EnemyCharacter.h"
-
+#include "Pangaea/Actors/Weapon.h"
 #include "EnemyAIController.h"
 #include "Components/CapsuleComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Navigation/PathFollowingComponent.h"
-#include "Net/UnrealNetwork.h"
 #include "Pangaea/Character/Player/PlayerCharacter.h"
 
 // Sets default values
@@ -89,12 +88,6 @@ void AEnemyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
-void AEnemyCharacter::OnRep_Weapon()
-{
-	if (_Weapon)
-		_Weapon->SetHolder(this);
-}
-
 void AEnemyCharacter::ChaseTarget(APawn* SeenPawn)
 {
 	auto PlayerCharacter = Cast<APlayerCharacter>(SeenPawn);
@@ -129,23 +122,6 @@ bool AEnemyCharacter::CanAttack()
 {
 	return Super::CanAttack() && _Weapon != nullptr;
 }
-
-void AEnemyCharacter::DieProcess()
-{
-	if (_Weapon)
-	{
-		_Weapon->SetHolder(nullptr);
-		_Weapon->Destroy();
-	}
-	Super::Destroy();
-}
-
-void AEnemyCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(AEnemyCharacter,_Weapon);
-}
-
 
 
 

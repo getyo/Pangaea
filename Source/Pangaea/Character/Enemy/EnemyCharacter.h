@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "Perception/PawnSensingComponent.h"
 #include "Pangaea/Character/GeneralCharacter.h"
-#include "Pangaea/Actors/Weapon.h"
 #include "EnemyCharacter.generated.h"
 
 UCLASS(Blueprintable,BlueprintType)
@@ -30,16 +29,8 @@ protected:
 
 	APawn * _ChasedTarget = nullptr;
 	UClass * _WeaponClass = nullptr;
-	UPROPERTY(ReplicatedUsing=OnRep_Weapon)
-	AWeapon * _Weapon = nullptr;
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="EnemyCharacter")
 	UPawnSensingComponent * PawnSensingComponent = nullptr;
-	
-	
-	virtual void DieProcess() override;
-	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
-	UFUNCTION()
-	void OnRep_Weapon();
 private:	
 	//用于重置_ChaseTarget的值，因为PawnSensingComponent并不会说自己看不见了
 	FTimerHandle TargetLostTimerHandle;
